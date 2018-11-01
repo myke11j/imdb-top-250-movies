@@ -6,6 +6,7 @@ import re
 import csv
 
 yearRegex = r"\((\d{4})\)"
+castRegex= r"^(.*)\s\(dir.\),\s(.*)"
 
 IMDB_TOP_250_URL = 'https://www.imdb.com/chart/top'
 
@@ -31,9 +32,11 @@ def startScrapping():
             anchorTag = row.findChild('a')
             movieInfo['link'] = 'https://www.imdb.com' + anchorTag.get('href')
             movieInfo['linkMeta'] = anchorTag.get('title')
+            movieInfo['director'] = re.match(castRegex, anchorTag.get('title'), re.MULTILINE).group(1) 
+            movieInfo['starring'] = re.match(castRegex, anchorTag.get('title'), re.MULTILINE).group(2)
             
         for row in ratings:
-            movieInfo['rating'] = row.getText().strip().split('\n')[0]
+            movieInfo['score'] = row.getText().strip().split('\n')[0]
         dataset.append(movieInfo)
         
     for item in dataset:
@@ -42,7 +45,6 @@ def startScrapping():
             try:
                 soupLink = convert(item.get('link'))
                 subtexts = soupLink.find('div', { 'class': 'subtext' })
-                
                 item['rating'] = null if not subtexts.getText().split()[0] else subtexts.getText().split()[0]
                 item['duration'] = null if not subtexts.getText().split()[2] + subtexts.getText().split()[3] else subtexts.getText().split()[2] + subtexts.getText().split()[3]
                 item['genre'] = null if not subtexts.getText().split()[5] else subtexts.getText().split()[5]
@@ -68,8 +70,8 @@ def startScrapping():
 def init():
     startScrapping()
         
-#soupLink = convert('https://www.imdb.com/title/tt0111161/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=e31d89dd-322d-4646-8962-327b42fe94b1&pf_rd_r=HCR8B181YD9JAEKC4A5V&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_1')
-#storyline = soupLink.find('div', { 'id': 'titleStoryLine'})
-#storyText = storyline.findChild('div', { 'class': 'inline canwrap' }).findChild('p').findChild('span').getText()
-#print(storyText)
+#soupLink = convert('https://www.imdb.com/title/tt0071562/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=e31d89dd-322d-4646-8962-327b42fe94b1&pf_rd_r=Q5MBEKKFJAP35E591Z17&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_3')
+#storyline = soupLink.find_all('div', { 'class': 'subtext' })
+##storyText = storyline.findChild('div', { 'class': 'inline canwrap' }).findChild('p').findChild('span').getText()
+#print(storyline)
 init()
